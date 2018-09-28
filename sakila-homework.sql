@@ -30,7 +30,7 @@ WHERE country IN ('Afghanistan', 'Bangladesh', 'China');
 
 -- 3a. You want to keep a description of each actor. You don't think you will be performing queries on a description, so create a column in the table actor named description and use the data type BLOB (Make sure to research the type BLOB, as the difference between it and VARCHAR are significant).
 ALTER TABLE actor
-ADD COLUMN description BLOB AFTER last_name;
+ADD COLUMN description2 BLOB AFTER last_name;
 
 -- 3b. Very quickly you realize that entering descriptions for each actor is too much effort. Delete the description column.
 
@@ -116,11 +116,68 @@ WHERE title = 'Alone Trip'));
 
 
 -- 7c. You want to run an email marketing campaign in Canada, for which you will need the names and email addresses of all Canadian customers. Use joins to retrieve this information.
+SELECT country, last_name, first_name, email
+FROM country c
+LEFT JOIN customer cust
+ON c.country_id = cust.customer_id
+WHERE country = 'Canada';
+
 -- 7d. Sales have been lagging among young families, and you wish to target all family movies for a promotion. Identify all movies categorized as family films.
+SELECT title, category
+FROM film_list
+WHERE category = 'Family';
+
 -- 7e. Display the most frequently rented movies in descending order.
+
+
 -- 7f. Write a query to display how much business, in dollars, each store brought in.
+SELECT store.store_id, SUM(amount)
+FROM store
+JOIN staff
+ON store.store_id = staff.store_id
+JOIN payment p 
+ON p.staff_id = staff.staff_id
+GROUP BY store.store_id
+ORDER BY SUM(amount);
+
 -- 7g. Write a query to display for each store its store ID, city, and country.
+SELECT s.store_id, cty.city, country.country 
+FROM store s
+JOIN address a 
+ON (s.address_id = a.address_id)
+JOIN city cty
+ON (cty.city_id = a.city_id)
+JOIN country
+ON (country.country_id = cty.country_id);
+
 -- 7h. List the top five genres in gross revenue in descending order. (Hint: you may need to use the following tables: category, film_category, inventory, payment, and rental.)
+SELECT c.name AS 'Genre', SUM(p.amount) AS 'Gross' 
+FROM category c
+JOIN film_category fc 
+ON (c.category_id=fc.category_id)
+JOIN inventory i 
+ON (fc.film_id=i.film_id)
+JOIN rental r 
+ON (i.inventory_id=r.inventory_id)
+JOIN payment p 
+ON (r.rental_id=p.rental_id)
+GROUP BY c.name ORDER BY Gross  LIMIT 5;
+
 -- 8a. In your new role as an executive, you would like to have an easy way of viewing the Top five genres by gross revenue. Use the solution from the problem above to create a view. If you haven't solved 7h, you can substitute another query to create a view.
+CREATE VIEW top_five_genres AS
+
+SELECT name, SUM(p.amount)
+FROM category c
+JOIN film_category fc
+JOIN inventory i
+ON i.film_id = fc.film_id
+JOIN rental r
+ON r.inventory_id = i.inventory_id
+JOIN payment p
+GROUP BY name LIMIT 5;
+
 -- 8b. How would you display the view that you created in 8a?
+SELECT * FROM top_five_genres;
+
 -- 8c. You find that you no longer need the view top_five_genres. Write a query to delete it.
+DROP VIEW top_five_genres;
